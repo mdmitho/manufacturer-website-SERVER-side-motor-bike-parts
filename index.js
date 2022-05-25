@@ -28,6 +28,7 @@ async function run() {
     const partsCollection = client.db("Motor-Bike-parts").collection("parts");
     const orderCollection = client.db("Motor-Bike-parts").collection("order");
     const profileCollection = client.db("Motor-Bike-parts").collection("profile");
+    const reviewCollection = client.db("Motor-Bike-parts").collection("review");
 
     
 app.get("/parts", async (req, res) => {
@@ -48,13 +49,19 @@ app.get("/parts", async (req, res) => {
     app.post('/order',async(req,res)=>{
       const order = req.body;
       const result = await orderCollection.insertOne(order);
-      res.send(result);
+  res.send( result);
     
     })
 
     app.get("/order", async (req, res) => {
       const query = {};
       const cursor = orderCollection.find(query);
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+    app.get("/review", async (req, res) => {
+      const query = {};
+      const cursor = reviewCollection.find(query);
       const result = await cursor.toArray();
       res.send(result);
     });
