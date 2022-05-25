@@ -29,6 +29,7 @@ async function run() {
     const orderCollection = client.db("Motor-Bike-parts").collection("order");
     const profileCollection = client.db("Motor-Bike-parts").collection("profile");
     const reviewCollection = client.db("Motor-Bike-parts").collection("review");
+    const userCollection = client.db("Motor-Bike-parts").collection("users");
 
     
 app.get("/parts", async (req, res) => {
@@ -72,6 +73,15 @@ app.get("/parts", async (req, res) => {
       res.send(result);
     
     })
+
+    app.get("/user", async (req, res) => {
+      const users = await userCollection.find().toArray();
+      res.send(users);
+    });
+
+
+
+
 
 
   } 
