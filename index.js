@@ -63,12 +63,22 @@ app.get("/parts", async (req, res) => {
   res.send(result);
     });
 
+
+
     app.get("/parts/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: ObjectId(id) };
       const result = await partsCollection.findOne(query);
       res.send(result);
     }); 
+
+
+    app.delete("/parts/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const result = await partsCollection.deleteOne(query);
+      res.send(result);
+    });
 
 
     app.post('/order',async(req,res)=>{
@@ -132,7 +142,7 @@ app.get("/parts", async (req, res) => {
       };
       const result = await userCollection.updateOne(filter, updateDoc, options);
       const token = jwt.sign({ email: email }, process.env.ACCESS_TOKEN_SECRET, {
-        expiresIn: "1h",
+        expiresIn: "3d",
       });
 
       res.send({ result, token });
