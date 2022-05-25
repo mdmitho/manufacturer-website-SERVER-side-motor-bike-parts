@@ -27,6 +27,7 @@ async function run() {
     await client.connect();
     const partsCollection = client.db("Motor-Bike-parts").collection("parts");
     const orderCollection = client.db("Motor-Bike-parts").collection("order");
+    const profileCollection = client.db("Motor-Bike-parts").collection("profile");
 
     
 app.get("/parts", async (req, res) => {
@@ -47,6 +48,12 @@ app.get("/parts", async (req, res) => {
     app.post('/order',async(req,res)=>{
       const order = req.body;
       const result = await orderCollection.insertOne(order);
+      res.send(result);
+    
+    })
+    app.post('/profile',async(req,res)=>{
+      const profile = req.body;
+      const result = await profileCollection.insertOne(profile);
       res.send(result);
     
     })
