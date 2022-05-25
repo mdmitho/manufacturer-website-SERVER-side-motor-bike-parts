@@ -51,6 +51,14 @@ app.get("/parts", async (req, res) => {
       res.send(result);
     
     })
+
+    app.get("/order", async (req, res) => {
+      const query = {};
+      const cursor = orderCollection.find(query);
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+
     app.post('/profile',async(req,res)=>{
       const profile = req.body;
       const result = await profileCollection.insertOne(profile);
