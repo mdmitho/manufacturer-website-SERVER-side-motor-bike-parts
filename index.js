@@ -21,7 +21,20 @@ const client = new MongoClient(uri, {
   serverApi: ServerApiVersion.v1,
 });
 
-
+function verifyJWT(req, res, next) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) {
+    return res.status(401).send({ message: "UnAuthorized access" });
+  }
+  const token = authHeader.split(" ")[1];
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, function (err, decoded) {
+    if (err) {
+      return res.status(403).send({ message: "Forbidden access" });
+    }
+    req.decoded = decoded;
+    next();
+  });
+}
 
 async function run() {
   try {
@@ -31,6 +44,16 @@ async function run() {
     const profileCollection = client.db("Motor-Bike-parts").collection("profile");
     const reviewCollection = client.db("Motor-Bike-parts").collection("review");
     const userCollection = client.db("Motor-Bike-parts").collection("users");
+
+
+    const verifyAdmin = async (req, ser, next) => {
+      const requester = req.decoded.email;
+      const requesterAccount = await userCollection.findOne({ email: requester });
+      if (requesterAccount.role === "admin") {
+        next();
+      } else res.status(403).send({ message: "forbidden" });
+    };
+
 
     
 app.get("/parts", async (req, res) => {
@@ -89,7 +112,7 @@ app.get("/parts", async (req, res) => {
     });
 
 
-    app.put("/user/admin/:email", async (req, res) => {
+    app.put("/user/admin/:email", verifyJWT, verifyAdmin, async (req, res) => {
       const email = req.params.email;
       const filter = { email: email };
       const updateDoc = {
@@ -99,6 +122,21 @@ app.get("/parts", async (req, res) => {
       res.send(result);
     });
 
+    app.put("/user/:email", async (req, res) => {
+      const email = req.params.email;
+      const user = req.body;
+      const filter = { email: email };
+      const options = { upsert: true };
+      const updateDoc = {
+        $set: user,
+      };
+      const result = await userCollection.updateOne(filter, updateDoc, options);
+      const token = jwt.sign({ email: email }, process.env.ACCESS_TOKEN_SECRET, {
+        expiresIn: "1h",
+      });
+
+      res.send({ result, token });
+    });
 
 
   
