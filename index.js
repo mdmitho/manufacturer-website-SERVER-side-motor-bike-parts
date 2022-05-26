@@ -54,7 +54,11 @@ async function run() {
       } else res.status(403).send({ message: "forbidden" });
     };
 
-
+    app.post("/parts", async (req, res) => {
+      const parts = req.body;
+      const result = await partsCollection.insertOne(parts);
+      res.send(result);
+    });
     
 app.get("/parts", async (req, res) => {
   const query ={}
