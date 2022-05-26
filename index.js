@@ -3,7 +3,7 @@ const cors = require("cors");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const { set } = require("express/lib/application");
 require("dotenv").config();
-
+const jwt = require("jsonwebtoken");
 const app = express();
 const port = process.env.PORT || 5000;
 
@@ -27,10 +27,13 @@ function verifyJWT(req, res, next) {
     return res.status(401).send({ message: "UnAuthorized access" });
   }
   const token = authHeader.split(" ")[1];
+
   jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, function (err, decoded) {
     if (err) {
       return res.status(403).send({ message: "Forbidden access" });
     }
+console.log(token);
+      
     req.decoded = decoded;
     next();
   });
@@ -80,6 +83,13 @@ app.get("/parts", async (req, res) => {
       res.send(result);
     });
 
+    app.get("/order", async (req, res) => {
+      const query = {};
+      const cursor = orderCollection.find(query);
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+
 
     app.post('/order',async(req,res)=>{
       const order = req.body;
@@ -89,11 +99,21 @@ app.get("/parts", async (req, res) => {
     })
 
     app.get("/order", async (req, res) => {
-      const query = {};
-      const cursor = orderCollection.find(query);
-      const result = await cursor.toArray();
-      res.send(result);
+      const email = req.query.email;
+      if (email) {
+        const query = { email: email };
+        const orders = await orderCollection.find(query).toArray();
+        return res.send(orders);
+      } else {
+        return res.status(403).send({ message: "forbidden access" });
+      }
     });
+
+
+  
+
+
+
     app.get("/review", async (req, res) => {
       const query = {};
       const cursor = reviewCollection.find(query);
