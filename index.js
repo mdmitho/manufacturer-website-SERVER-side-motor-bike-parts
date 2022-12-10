@@ -4,6 +4,7 @@ const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const { set } = require("express/lib/application");
 require("dotenv").config();
 const jwt = require("jsonwebtoken");
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const app = express();
 const port = process.env.PORT || 5000;
 
@@ -54,6 +55,21 @@ async function run() {
       } else res.status(403).send({ message: "forbidden" });
     };
 
+
+    app.post("/create-payment-intent", async (req, res) => {
+      const service = req.body;
+      const price = service.price;
+      const amount = price * 100;
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: amount,
+        currency: "usd",
+        payment_method_types: ["card"],
+      });
+      res.send({ clientSecret: paymentIntent.client_secret });
+    });
+
+
+
     app.post("/parts", async (req, res) => {
       const parts = req.body;
       const result = await partsCollection.insertOne(parts);
@@ -102,6 +118,15 @@ app.delete("/order/:id", async (req, res) => {
   const result = await orderCollection.deleteOne(query);
   res.send(result);
 });
+
+
+
+app.get('/order/:id', async(req,res)=>{
+  const id= req.params.id;
+  const query ={_id: ObjectId(id)}
+  const order =await orderCollection.findOne(query)
+  res.send(order)
+})
     app.post('/order',async(req,res)=>{
       const order = req.body;
       const result = await orderCollection.insertOne(order);
@@ -119,10 +144,6 @@ app.delete("/order/:id", async (req, res) => {
         return res.status(403).send({ message: "forbidden access" });
       }
     });
-
-
-  
-
 
 
     app.get("/review", async (req, res) => {
